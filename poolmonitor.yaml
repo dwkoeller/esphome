@@ -19,15 +19,11 @@ text_sensor:
     id: uptime_human
     icon: mdi:clock-start
 
-  - platform: template
-    name: PH Value
-    id: ph_value
-
 sensor:
   - platform: uptime
     name: Pool Monitor Uptime Sensor
     id: uptime_sensor
-    update_interval: 60s
+    update_interval: 10s
     on_raw_value:
       then:
         - text_sensor.template.publish:
@@ -50,34 +46,24 @@ sensor:
   - platform: ads1115
     multiplexer: 'A0_GND'
     gain: 6.144
-    name: "ADC A0-GND voltage"
+    name: "Pool pH"
     id: adc_sensor_a0
-    update_interval: 10s
-    on_raw_value:
-      then:
-        - text_sensor.template.publish:
-            id: ph_value
-            state: !lambda |-
-              float voltage = id(adc_sensor_a0).raw_state;
-              return to_string((7 + (2.5 - voltage) * 5.7)).substr(0,4).c_str();
-
-#  - platform: ads1115
-#    multiplexer: 'A1_GND'
-#    gain: 6.144
-#    name: "ADC A1-GND voltage"
-#    id: adc_sensor_a1
-#    update_interval: 10s
+    update_interval: 1s
+    filters:
+      - median:
+          window_size: 60
+          send_every: 15
+      - lambda: return (7 + (2.5 - x) * 5.7);
+    unit_of_measurement: ""
+    icon: "mdi:ph"
 
   - platform: ads1115
     multiplexer: 'A2_GND'
     gain: 6.144
     name: "ADC A2-GND voltage"
     id: adc_sensor_a2
-    update_interval: 10s
-
-#  - platform: ads1115
-#    multiplexer: 'A3_GND'
-#    gain: 6.144
-#    name: "ADC A3-GND voltage"
-#    id: adc_sensor_a3
-#    update_interval: 10s
+    update_interval: 1s
+    filters:
+      - sliding_window_moving_average:
+          window_size: 60
+          send_every: 60
