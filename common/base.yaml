@@ -4,11 +4,14 @@ wifi:
 
 # Enable logging
 logger:
+  level: DEBUG  #You Can Use "INFO" Level
+    #baud_rate: 0
 
 # Enable Home Assistant API
 api:
-  password: !secret api_password
   encryption:
     key: !secret encryption_key
 ota:
-  password: !secret ota_password
+  - platform: esphome
+    password: !secret ota_password
+

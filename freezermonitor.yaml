@@ -1,0 +1,86 @@
+esphome:
+  name: freezer-monitor
+  platform: ESP8266
+  board: d1_mini
+
+<<: !include common/base.yaml
+
+text_sensor:
+  - platform: template
+    name: Freezer Monitor Uptime
+    id: uptime_human
+    icon: mdi:clock-start
+
+sensor:
+  - platform: uptime
+    name: Freezer Monitor Uptime Sensor
+    id: uptime_sensor
+    update_interval: 10s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  - platform: dallas
+    name: "Chest Freezer Temperature"
+    address: "0xF7EAE70D1E64FF28"
+    filters:
+    - lambda: return x * (9.0/5.0) + 32.0 + 0.1;
+    unit_of_measurement: "°F"
+    accuracy_decimals: 1
+
+  - platform: dallas
+    name: "Freezer Temperature"
+    address: "0x4B55FC0D1E64FF28"
+    filters:
+    - lambda: return x * (9.0/5.0) + 32.0 + 0.1;
+    unit_of_measurement: "°F"
+    accuracy_decimals: 1
+
+  - platform: dallas
+    name: "Fridge Temperature"
+    address: "0x5A46FB0D1E64FF28"
+    filters:
+    - lambda: return x * (9.0/5.0) + 32.0 + 0.1;
+    unit_of_measurement: "°F"
+    accuracy_decimals: 1
+
+dallas:
+  - pin: D4
+    update_interval: 10s
+
+binary_sensor:
+  - platform: gpio
+    name: "Chest Freezer"
+    device_class: door
+    pin:
+      number: D5
+      mode: INPUT_PULLUP
+
+  - platform: gpio
+    name: "Freezer"
+    device_class: door
+    pin:
+      number: D6
+      mode: INPUT_PULLUP
+ 
+  - platform: gpio
+    name: "Fridge"
+    device_class: door
+    pin:
+      number: D7
+      mode: INPUT_PULLUP

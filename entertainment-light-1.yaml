@@ -1,0 +1,116 @@
+esphome:
+  name: entertainment-light-1
+
+esp8266:
+  board: esp12e
+
+
+<<: !include common/base.yaml
+#<<: !include common/esp8266_watchdog.yaml
+
+text_sensor:
+  - platform: template
+    name: Entertainment Light 1 Uptime
+    id: uptime_human
+    icon: mdi:clock-start
+
+logger:
+  baud_rate: 0 # (UART logging interferes with cse7766)
+  logs:
+    sensor: DEBUG # (Overide any global setting, to VERBOSE will spamming the cse7766 sensors)
+
+uart:
+  rx_pin: RX
+  baud_rate: 4800
+  parity: EVEN
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode: INPUT_PULLUP
+      inverted: True
+    name: "Entertainment Light 1 Button"
+    on_press:
+      - switch.toggle: relay
+  - platform: status
+    name: "Entertainment Light 1 Status"
+
+sensor:
+  - platform: uptime
+    name: Entertainment Light 1 Uptime Sensor
+    id: uptime_sensor
+    update_interval: 10s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+  - platform: wifi_signal
+    name: "Entertainment Light 1 WiFi Signal"
+    update_interval: 60s
+  - platform: cse7766
+    current:
+      name: "Entertainment Light 1 Current"
+      accuracy_decimals: 2
+      filters:
+        - throttle_average: 60s
+    voltage:
+      name: "Entertainment Light 1 Voltage"
+      accuracy_decimals: 2
+      filters:
+        - throttle_average: 60s
+    power:
+      name: "Entertainment Light 1 Power"
+      accuracy_decimals: 2
+      id: my_power
+      filters:
+        - throttle_average: 60s
+    energy:
+      name: "Entertainment Light 1 Energy"
+      accuracy_decimals: 2
+      filters:
+        - throttle: 60s
+    apparent_power: #(only available with version 2024.3.0 or greater)
+      name: "Entertainment Light 1 Apparent Power"
+      filters:
+        - throttle_average: 60s
+    power_factor: #(only available with version 2024.3.0 or greater)
+      name: "Entertainment Light 1 Power Factor"
+      accuracy_decimals: 2
+      filters:
+        - throttle_average: 60s
+
+  - platform: total_daily_energy #(Optional, not specific to cse7766)
+    name: "Entertainment Light 1 Daily Energy"
+    power_id: my_power
+    accuracy_decimals: 2
+
+switch:
+  - platform: gpio
+    name: "Entertainment Light 1"
+    pin: GPIO12
+    id: relay
+    restore_mode: ALWAYS_ON
+
+time:
+  - platform: sntp #(required for total_daily_energy)
+    id: my_time
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: True

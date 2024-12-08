@@ -1,0 +1,62 @@
+esphome:
+  name: front-ceiling
+  platform: ESP8266
+  board: esp8285
+
+<<: !include common/base.yaml
+#<<: !include common/esp8266_watchdog.yaml
+
+text_sensor:
+  - platform: template
+    name: Front Ceiling Uptime
+    id: uptime_human
+    icon: mdi:clock-start
+
+sensor:
+  - platform: uptime
+    name: Front Ceiling Uptime Sensor
+    id: uptime_sensor
+    update_interval: 10s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+binary_sensor:
+  - platform: gpio
+    pin:
+      number: GPIO0
+      mode:
+        input: true
+        pullup: true
+      inverted: true
+    name: "Front Ceiling Button"
+    on_press:
+      - switch.toggle: relay
+
+switch:
+  - platform: gpio
+    name: "Front Ceiling Light"
+    pin: GPIO12
+    id: relay
+
+status_led:
+  pin:
+    number: GPIO13
+    inverted: yes
+
+

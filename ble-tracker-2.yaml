@@ -1,0 +1,43 @@
+substitutions:
+  devicename: "ble-tracker-2" #Rename the device what you want.
+  upper_devicename: "BLE Tracker 2" #Rename the device what you want.
+
+<<: !include common/base.yaml
+
+esphome:
+  name: $devicename
+
+esp32:
+  board: wemos_d1_mini32 
+
+esp32_ble_tracker:
+  scan_parameters:
+    interval: 1100ms
+    window: 1100ms
+    active: true
+
+bluetooth_proxy:
+  active: true
+
+status_led:
+  pin:
+    number: GPIO2 #ESP32 OnBroad LED
+    inverted: false
+
+sensor:
+  - platform: wifi_signal
+    name: ${upper_devicename} WiFi Signal
+    update_interval: 60s
+  - platform: uptime
+    name: ${upper_devicename} Uptime
+
+text_sensor:
+  - platform: wifi_info
+    ip_address:
+      name: ${upper_devicename} IP Address
+    ssid:
+      name: ${upper_devicename} SSID
+    bssid:
+      name: ${upper_devicename} BSSID
+    mac_address:
+      name: ${upper_devicename} Mac Address

@@ -1,0 +1,65 @@
+esphome:
+  name: greenhouse
+
+esp8266:
+  board: d1_mini
+
+
+<<: !include common/base.yaml
+
+text_sensor:
+  - platform: template
+    name: Greenhouse Temperature Uptime
+    id: uptime_human
+    icon: mdi:clock-start
+
+sensor:
+  - platform: uptime
+    name: Greenhouse Uptime Sensor
+    id: uptime_sensor
+    update_interval: 10s
+    on_raw_value:
+      then:
+        - text_sensor.template.publish:
+            id: uptime_human
+            state: !lambda |-
+              int seconds = round(id(uptime_sensor).raw_state);
+              int days = seconds / (24 * 3600);
+              seconds = seconds % (24 * 3600);
+              int hours = seconds / 3600;
+              seconds = seconds % 3600;
+              int minutes = seconds /  60;
+              seconds = seconds % 60;
+              return (
+                (days ? to_string(days) + "d " : "") +
+                (hours ? to_string(hours) + "h " : "") +
+                (minutes ? to_string(minutes) + "m " : "") +
+                (to_string(seconds) + "s")
+              ).c_str();
+
+  - platform: dallas_temp
+    name: "Greenhouse Temperature"
+    filters:
+    - lambda: return x * (9.0/5.0) + 32.0 + 0.1;
+    unit_of_measurement: "°F"
+    accuracy_decimals: 1
+    update_interval: 10s
+
+
+one_wire:
+  - platform: gpio
+    pin: D4
+
+
+output:
+  - platform: esp8266_pwm
+    pin: D1
+    id: pwm_output
+
+
+light:
+  - platform: monochromatic
+    output: pwm_output
+    name: "Greenhouse"
+    id: led_greenhouse_1
+
