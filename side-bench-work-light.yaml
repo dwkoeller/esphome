@@ -1,5 +1,5 @@
 esphome:
-  name: foyer-light
+  name: side-bench-work-light
 
 esp8266:
   board: esp12e
@@ -11,7 +11,7 @@ esp8266:
 
 text_sensor:
   - platform: template
-    name: Foyer Light Uptime
+    name: Side Bench Work Light Uptime
     id: uptime_human
     icon: mdi:clock-start
 
@@ -31,15 +31,15 @@ binary_sensor:
       number: GPIO0
       mode: INPUT_PULLUP
       inverted: True
-    name: "Foyer Light Button"
+    name: "Side Bench Work Light Button"
     on_press:
       - switch.toggle: relay
   - platform: status
-    name: "Foyer Light Status"
+    name: "Side Bench Work Light Status"
 
 sensor:
   - platform: uptime
-    name: Foyer Light Uptime Sensor
+    name: Side Bench Work Light Uptime Sensor
     id: uptime_sensor
     update_interval: 10s
     on_raw_value:
@@ -61,42 +61,42 @@ sensor:
                 (to_string(seconds) + "s")
               ).c_str();
   - platform: wifi_signal
-    name: "Foyer Light WiFi Signal"
+    name: "Side Bench Work Light WiFi Signal"
     update_interval: 60s
   - platform: cse7766
     current:
-      name: "Foyer Light Current"
+      name: "Side Bench Work Light Current"
       accuracy_decimals: 2
       filters:
         - throttle_average: 60s
     voltage:
-      name: "Foyer Light Voltage"
+      name: "Side Bench Work Light Voltage"
       accuracy_decimals: 2
       filters:
         - throttle_average: 60s
     power:
-      name: "Foyer Light Power"
+      name: "Side Bench Work Light Power"
       accuracy_decimals: 2
       id: my_power
       filters:
         - throttle_average: 60s
     energy:
-      name: "Foyer Light Energy"
+      name: "Side Bench Work Light Energy"
       accuracy_decimals: 2
       filters:
         - throttle: 60s
     apparent_power: #(only available with version 2024.3.0 or greater)
-      name: "Foyer Light Apparent Power"
+      name: "Side Bench Work Light Apparent Power"
       filters:
         - throttle_average: 60s
     power_factor: #(only available with version 2024.3.0 or greater)
-      name: "Foyer Light Power Factor"
+      name: "Side Bench Work Light Power Factor"
       accuracy_decimals: 2
       filters:
         - throttle_average: 60s
 
   - platform: total_daily_energy #(Optional, not specific to cse7766)
-    name: "Foyer Light Daily Energy"
+    name: "Side Bench Work Light Daily Energy"
     power_id: my_power
     accuracy_decimals: 2
 

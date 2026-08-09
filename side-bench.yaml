@@ -52,7 +52,7 @@ binary_sensor:
 
 switch:
   - platform: gpio
-    name: "Side Bench Light"
+    name: "Light"
     pin: GPIO12
     id: relay
     restore_mode: ALWAYS_OFF
